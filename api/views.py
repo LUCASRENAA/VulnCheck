@@ -4,8 +4,8 @@ import subprocess
 import os
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
-from .models import Scan, Vulnerability
-from .serializers import ScanSerializer, VulnerabilitySerializer
+from .models import Scan, Vulnerability,CVE
+from .serializers import ScanSerializer, VulnerabilitySerializer,CVESerializer
 import re
 import shutil
 
@@ -83,23 +83,47 @@ class ScanViewSet(viewsets.ModelViewSet):
             vulns = []
             for result in result_json.get("Results", []):
                 for vulnerability in result.get("Vulnerabilities", []):
+                    # Criando ou pegando o CVE já existente
+                    cve, created = CVE.objects.get_or_create(
+                        cve=vulnerability.get("VulnerabilityID"),
+                        defaults={
+                            "package_name": vulnerability.get("PkgName"),
+                            "severity": vulnerability.get("Severity"),
+                            "description": vulnerability.get("Description"),
+                            "remediation": vulnerability.get("PrimaryURL"),
+                            "vulnerable_version": vulnerability.get("InstalledVersion"),
+                            "fixed_version": vulnerability.get("FixedVersion"),
+                            "cvss_bitnami_score": vulnerability.get("CVSS", {}).get("bitnami", {}).get("V3Score", None),
+                            "cvss_bitnami_vector": vulnerability.get("CVSS", {}).get("bitnami", {}).get("V3Vector", None),
+                            "cvss_ghsa_score": vulnerability.get("CVSS", {}).get("ghsa", {}).get("V3Score", None),
+                            "cvss_ghsa_vector": vulnerability.get("CVSS", {}).get("ghsa", {}).get("V3Vector", None),
+                            "cvss_nvd_score": vulnerability.get("CVSS", {}).get("nvd", {}).get("V3Score", None),
+                            "cvss_nvd_vector": vulnerability.get("CVSS", {}).get("nvd", {}).get("V3Vector", None),
+                            "published_at": vulnerability.get("PublishedDate", None),
+                        }
+                    )
+
+                    # Criando a vulnerabilidade e associando ao CVE
                     vuln = Vulnerability.objects.create(
                         scan=scan,
-                        cve=vulnerability.get("VulnerabilityID"),
-                        package_name=vulnerability.get("PkgName"),
-                        severity=vulnerability.get("Severity"),
-                        description=vulnerability.get("Description"),
-                        remediation=vulnerability.get("PrimaryURL"),
-                        vulnerable_version=vulnerability.get("InstalledVersion"),
-                        fixed_version=vulnerability.get("FixedVersion"),
+                        cve=cve,
                     )
                     vulns.append(vuln)
             return vulns
         except json.JSONDecodeError:
             raise Exception("Erro ao processar o JSON do Trivy.")
 
+
+
 class VulnerabilityViewSet(viewsets.ModelViewSet):
     queryset = Vulnerability.objects.all()
     serializer_class = VulnerabilitySerializer
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+
+
+class CVEViewSet(viewsets.ModelViewSet):
+    queryset = CVE.objects.all()
+    serializer_class = CVESerializer
     permission_classes = [permissions.AllowAny]
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']

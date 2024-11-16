@@ -1,7 +1,7 @@
 # scanner/serializers.py
 
 from rest_framework import serializers
-from .models import Scan,Vulnerability
+from .models import Scan,Vulnerability,CVE
 
 class ScanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,4 +21,10 @@ class ScanSerializer(serializers.ModelSerializer):
 class VulnerabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Vulnerability
+        fields = '__all__'
+
+    
+class CVESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CVE
         fields = '__all__'
