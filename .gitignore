@@ -1,0 +1,52 @@
+# Ignore VS Code settings
+.vscode/
+
+# Ignore environment virtual folders
+env/
+venv/
+ENV/
+*.env
+
+# Ignore Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Ignore Django migrations
+*/migrations/*
+!*/migrations/__init__.py
+
+# Ignore Django database files
+db.sqlite3
+*.sqlite3
+
+# Ignore Django log files
+*.log
+
+# Ignore local settings files (exemplo para settings locais de configuração)
+local_settings.py
+
+# Ignore media and static files generated during runtime
+media/
+static/
+
+# Ignore pytest cache
+.pytest_cache/
+
+# Ignore coverage reports
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+
+# Ignore IDE and editor files
+.idea/
+*.swp
+*~
+
+# Ignore Django secret key (se for armazenado em arquivo)
+secret_key.txt
+
+
+
+scans/*
